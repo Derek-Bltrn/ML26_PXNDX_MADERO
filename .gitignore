@@ -210,6 +210,7 @@ __marimo__/
 # Image files (excluding root directory)
 **/*.jpg
 **/*.jpeg
+**/*.png
 **/*.gif
 **/*.bmp
 **/*.svg
