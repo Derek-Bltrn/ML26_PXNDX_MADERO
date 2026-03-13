@@ -24,6 +24,8 @@ dependencies = [
     "scipy",
     "gymnasium>=0.26.3",
     "gymnasium[classic_control]",
+    "torch>=2.8.0",
+    "torchvision>=0.23.0",
 ]
 
 [project.optional-dependencies]
