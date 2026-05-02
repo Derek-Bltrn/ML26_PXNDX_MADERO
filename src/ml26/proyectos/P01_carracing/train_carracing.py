@@ -61,7 +61,7 @@ def run_eval(
 def run_episode(
     env,
     agent,
-    deterministic,
+    deterministic=False,
     img_cgf={},
     do_training=True,
     rendering=False,
@@ -76,19 +76,19 @@ def run_episode(
     stats = EpisodeStats()
 
     step = 0
-    state = env.reset()[0]
+    state = env.reset()[0] # Estado que va ser preprocesado
 
     # Append image history to first state
-    image_hist = []
-    history_length = img_cgf.get("history_length", 0)
+    image_hist = [] #Historial de imagenes a recibir en el estado
+    history_length = img_cgf.get("history_length", 0) 
     skip_frames = img_cgf.get("skip_frames", 0)
-    state = state_preprocessing(state)
+    state = state_preprocessing(state)# se pasa a escala de grises
     image_hist.extend([state] * (history_length + 1))
     state = np.array(image_hist).reshape(96, 96, history_length + 1)
 
     # we use while true since the agent can finish before max_timesteps (terminal or max timesteps)
     while True:
-        state_cnn = np.expand_dims(np.transpose(state, (2, 0, 1)), 0)
+        state_cnn = np.expand_dims(np.transpose(state, (2, 0, 1)), 0)#1,4,96,96
         # TODO: get action_id from agent
         # Hint: adapt the probabilities of the 5 actions for random sampling so that the agent explores properly.
         # change state to match torch cnn dimensions (batch, channels,w,h)

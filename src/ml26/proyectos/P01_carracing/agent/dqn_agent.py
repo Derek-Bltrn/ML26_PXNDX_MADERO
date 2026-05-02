@@ -39,6 +39,10 @@ class DQNAgent:
            epsilon: Chance to sample a random action. Float betwen 0 and 1.
            lr: learning rate of the optimizer
         """
+        self.epsilon_start = 1.0
+        self.epsilon_min = 0.05
+        self.epsilon_decay = 10000
+        self.steps_done = 0
         self.model_cfg = model_cfg
         self.img_cfg = img_cfg
         # setup networks
@@ -69,7 +73,7 @@ class DQNAgent:
         """
         # TODO:
         # 1. add current transition to replay buffer
-        ...
+        self.replay_buffer.add_transition(state, action, next_state, reward, terminal)
 
         # TODO: 2. sample next BATCH and perform batch update:
         (
@@ -78,7 +82,7 @@ class DQNAgent:
             batch_next_states,
             batch_rewards,
             batch_terminal_flags,
-        ) = ...
+        ) = self.replay_buffer.next_batch(self.batch_size)
 
         # TODO: use tt() function to transform arrays to tensors
         (
@@ -98,7 +102,7 @@ class DQNAgent:
         # TODO: 2.1 compute td targets and loss
         #  td_target =  reward + discount * max_a Q_target(next_state_batch, a)
 
-        td_target = ...
+        td_target = reward + self.gamma * max_a Q_target(next_state_batch, a)
         current_prediction = ...
         loss = ...
 
@@ -118,20 +122,33 @@ class DQNAgent:
         Returns:
             action id
         """
+
+        # Epsilon decay policy
+        """
+        epsilon = self.epsilon_min + (
+        self.epsilon_start - self.epsilon_min
+        ) * np.exp(-self.steps_done / self.epsilon_decay)
+        """
         r = np.random.uniform()
+
         if deterministic or r > self.epsilon:
             # TODO: take greedy action (argmax)
             # Consider that the state needs to be converted to a torch tensor
             # return the action id as an integer
-            action_id = ...
+            state_t = torch.from_numpy(state).float().to(self.device)
+            with torch.no_grad():
+                q_values = self.Q(state_t)#corre el forward de la red
+            action_id = torch.argmax(q_values, dim=1).item()
         else:
-
             # TODO: sample random action
             # Hint for the exploration in CarRacing: sampling the action from a uniform distribution will probably not work.
             # You can sample the agents actions with different probabilities (need to sum up to 1) so that
             # the agent will prefer to accelerate or going straight.
             # To see how the agent explores, turn the rendering in the training on and look what the agent is doing.
-            action_id = ...
+            action_id = np.random.choice(
+                self.num_actions,
+                p=[0.25, 0.15, 0.15, 0.40, 0.05]
+            )
 
         return action_id
 
