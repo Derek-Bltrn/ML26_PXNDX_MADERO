@@ -20,11 +20,9 @@ if not os.path.exists(RESULTS_DIR):
 
 if __name__ == "__main__":
     env = gym.make("CarRacing-v3", continuous=False, render_mode="human")
-    history_length = 0
-
     # TODO: Replace with desired model WITHOUT the extension
-    model_name = "dqn_agent_780"
-    agent_path = os.path.abspath(f"{MODELS_DIR}/{model_name}")
+    model_name = "dqn_agent_best_eval"
+    agent_path = os.path.abspath(f"{MODELS_DIR}/{model_name}.pt")
 
     n_actions = env.action_space.n
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -44,7 +42,7 @@ if __name__ == "__main__":
             env,
             agent,
             deterministic=True,
-            img_cgf=cfg.get("image_preprocessing"),
+            img_cgf=agent.img_cfg,
             do_training=False,
             max_timesteps=1000,
             rendering=True,
