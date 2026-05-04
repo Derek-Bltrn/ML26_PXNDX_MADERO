@@ -1,0 +1,108 @@
+_wandb:
+    value:
+        cli_version: 0.26.1
+        e:
+            1i276k89ilpysosdkspa21hh1ftlau5w:
+                cpu_count: 12
+                cpu_count_logical: 16
+                cudaVersion: "13.2"
+                disk:
+                    /:
+                        total: "510745636864"
+                        used: "500771020800"
+                email: derek.beltran@cetys.edu.mx
+                executable: C:\Users\kraig\ML26_PXNDX_MADERO\.venv\Scripts\python.exe
+                git:
+                    commit: 8f35260b8715faafbda3e0444106d9ac23c40637
+                    remote: https://github.com/Derek-Bltrn/ML26_PXNDX_MADERO.git
+                gpu: NVIDIA GeForce RTX 3050 Ti Laptop GPU
+                gpu_count: 1
+                gpu_nvidia:
+                    - architecture: Ampere
+                      cudaCores: 2560
+                      memoryTotal: "4294967296"
+                      name: NVIDIA GeForce RTX 3050 Ti Laptop GPU
+                      uuid: GPU-c9fc627e-b332-8919-5f71-f2eeb7fb5057
+                host: Derek_laptop
+                memory:
+                    total: "16869548032"
+                os: Windows-10-10.0.26200-SP0
+                program: -m ml26.proyectos.P01_carracing.train_carracing
+                python: CPython 3.11.5
+                root: C:\Users\kraig\ML26_PXNDX_MADERO
+                startedAt: "2026-05-04T23:39:45.881082Z"
+                writerId: 1i276k89ilpysosdkspa21hh1ftlau5w
+        m:
+            - "1": epsilon/reward, train
+              "5": 2
+              "6":
+                - 1
+                - 3
+              "7": []
+            - "1": epsilon, train
+              "6": []
+              "7": []
+            - "1": epsilon/reward, eval
+              "5": 4
+              "6":
+                - 1
+                - 3
+              "7": []
+            - "1": epsilon, eval
+              "6": []
+              "7": []
+            - "1": steps/reward, train
+              "5": 6
+              "6":
+                - 1
+                - 3
+              "7": []
+            - "1": steps, train
+              "6": []
+              "7": []
+            - "1": steps/reward, eval
+              "5": 8
+              "6":
+                - 1
+                - 3
+              "7": []
+            - "1": steps, eval
+              "6": []
+              "7": []
+        python_version: 3.11.5
+        t:
+            "1":
+                - 1
+            "2":
+                - 1
+            "3":
+                - 7
+                - 13
+                - 16
+            "4": 3.11.5
+            "5": 0.26.1
+            "8":
+                - 3
+            "12": 0.26.1
+            "13": windows-amd64
+evaluation:
+    value:
+        every_n_ep: 50
+        n_episodes: 10
+image_preprocessing:
+    value:
+        history_length: 3
+        skip_frames: 2
+model:
+    value:
+        batch_size: 64
+        epsilon: 0.1
+        epsilon_decay: 50000
+        epsilon_min: 0.05
+        epsilon_start: 0.25
+        gamma: 0.99
+        lr: 0.0003
+        tau: 0.01
+training:
+    value:
+        n_episodes: 500

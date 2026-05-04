@@ -39,9 +39,9 @@ class DQNAgent:
            epsilon: Chance to sample a random action. Float betwen 0 and 1.
            lr: learning rate of the optimizer
         """
-        self.epsilon_start = model_cfg.get("epsilon_start", .8)
-        self.epsilon_min = model_cfg.get("epsilon_min", 0.03)
-        self.epsilon_decay = model_cfg.get("epsilon_decay", 50000)
+        self.epsilon_start = model_cfg.get("epsilon_start")
+        self.epsilon_min = model_cfg.get("epsilon_min")
+        self.epsilon_decay = model_cfg.get("epsilon_decay")
         self.steps_done = 0
         self.model_cfg = model_cfg
         self.img_cfg = img_cfg

@@ -31,10 +31,12 @@ class EpisodeStats:
     def __init__(self):
         self.episode_reward = 0
         self.actions_ids = []
+        self.total_steps = 0
 
-    def step(self, reward, action_id):
+    def step(self, reward, action_id, n_steps=1):
         self.episode_reward += reward
         self.actions_ids.append(action_id)
+        self.total_steps += n_steps
 
     def get_action_usage(self, action_name):
         action_id = action_to_id[action_name]

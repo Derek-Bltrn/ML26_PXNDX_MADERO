@@ -28,6 +28,7 @@ def run_eval(
     eval_every_n_ep = eval_cfg.get("every_n_ep")
 
     mean_reward = 0
+    mean_steps = 0
     if curr_episode % eval_every_n_ep == 0:
         for j in range(num_eval_episodes):
             stats = run_episode(
@@ -40,8 +41,18 @@ def run_eval(
                 do_training=False,
             )
             mean_reward += stats.episode_reward
+            mean_steps += stats.total_steps
         mean_reward /= num_eval_episodes
-        run.log({"val/mean_return": mean_reward, "episode": curr_episode, "train/epsilon": agent.get_epsilon()})
+        mean_steps /= num_eval_episodes
+        epsilon = agent.get_epsilon()
+        run.log(
+            {
+                "episode": curr_episode,
+                "epsilon, eval": epsilon,
+                "epsilon/reward, eval": mean_reward,
+                "steps/reward, eval": mean_reward,
+            }
+        )
         print(
             f"[EVAL] Episode {curr_episode}: Mean Reward: {mean_reward} over {num_eval_episodes} episodes | epsilon: {agent.get_epsilon():.4f}"
         )
@@ -97,9 +108,11 @@ def run_episode(
 
         # Hint: frame skipping might help you to get better results.
         reward = 0
+        env_steps = 0
         for _ in range(skip_frames + 1):
             next_state, r, terminal, truncated, info = env.step(action)
             reward += r
+            env_steps += 1
             if rendering:
                 env.render()
 
@@ -119,7 +132,7 @@ def run_episode(
                 state_switch_channels, action, next_switch_channels, reward, terminal
             )
 
-        stats.step(reward, action)
+        stats.step(reward, action, n_steps=env_steps)
 
         state = next_state
 
@@ -150,15 +163,18 @@ def train_online(run, env, agent, num_episodes, img_cfg={}, eval_cfg={}):
             max_timesteps=max_timesteps,
         )
 
+        epsilon = agent.get_epsilon()
         run.log(
             {
                 "episode": ep,
-                "train/ep_return": stats.episode_reward,
-                "train/straight": stats.get_action_usage("STRAIGHT"),
-                "train/left": stats.get_action_usage("LEFT"),
-                "train/right": stats.get_action_usage("RIGHT"),
-                "train/accel": stats.get_action_usage("ACCELERATE"),
-                "train/brake": stats.get_action_usage("BRAKE"),
+                "epsilon, train": epsilon,
+                "epsilon/reward, train": stats.episode_reward,
+                "steps/reward, train": stats.episode_reward,
+                "straight_usage, train": stats.get_action_usage("STRAIGHT"),
+                "left_usage, train": stats.get_action_usage("LEFT"),
+                "right_usage, train": stats.get_action_usage("RIGHT"),
+                "accel_usage, train": stats.get_action_usage("ACCELERATE"),
+                "brake_usage, train": stats.get_action_usage("BRAKE"),
             }
         )
 
@@ -199,6 +215,10 @@ def init_wandb(cfg):
         config=cfg,
         name=f"DQN-CarRacing_{timestamp}_utc",
     )
+    wandb.define_metric("epsilon/reward, train", step_metric="epsilon, train")
+    wandb.define_metric("epsilon/reward, eval", step_metric="epsilon, eval")
+    wandb.define_metric("steps/reward, train", step_metric="steps, train")
+    wandb.define_metric("steps/reward, eval", step_metric="steps, eval")
     return run
 
 
@@ -211,8 +231,8 @@ if __name__ == "__main__":
     # Hyperparams
     cfg = {
         "evaluation": {
-            "n_episodes": 5,
-            "every_n_ep": 20,  # run evaluation every n episodes
+            "n_episodes": 10,
+            "every_n_ep": 50,  # run evaluation every n episodes
         },
         "training": {"n_episodes": 500},
         "model": {
@@ -220,8 +240,8 @@ if __name__ == "__main__":
             "gamma": 0.99,
             "epsilon": 0.1,
             "tau": 0.01,
-            "lr": 1e-4,
-            "epsilon_start": .25,
+            "lr": 3e-4,
+            "epsilon_start":.25,
             "epsilon_min": 0.05,
             "epsilon_decay": 50000,
         },
