@@ -47,10 +47,9 @@ def run_eval(
         epsilon = agent.get_epsilon()
         run.log(
             {
-                "episode": curr_episode,
                 "epsilon, eval": epsilon,
+                "reward, eval": mean_reward,
                 "epsilon/reward, eval": mean_reward,
-                "steps/reward, eval": mean_reward,
             }
         )
         print(
@@ -148,12 +147,18 @@ def train_online(run, env, agent, num_episodes, img_cfg={}, eval_cfg={}):
 
     best_return = -float("inf")
     max_timesteps = 300
-    for ep in tqdm(range(num_episodes)):
-        # After 150 episodes, allow longer episodes
-        if ep > 150:
-            max_timesteps = 1000
 
+    for ep in tqdm(range(num_episodes)):
         # Hint: you can keep the episodes short in the beginning by changing max_timesteps (otherwise the car will spend most of the time out of the track)
+        if ep < 50:
+            max_timesteps = 200
+        elif ep < 150:
+            max_timesteps = 400
+        elif ep < 300:
+            max_timesteps = 700
+        else:
+            max_timesteps = 1000
+            
         stats = run_episode(
             env,
             agent,
@@ -168,8 +173,8 @@ def train_online(run, env, agent, num_episodes, img_cfg={}, eval_cfg={}):
             {
                 "episode": ep,
                 "epsilon, train": epsilon,
+                "reward, train": stats.episode_reward,
                 "epsilon/reward, train": stats.episode_reward,
-                "steps/reward, train": stats.episode_reward,
                 "straight_usage, train": stats.get_action_usage("STRAIGHT"),
                 "left_usage, train": stats.get_action_usage("LEFT"),
                 "right_usage, train": stats.get_action_usage("RIGHT"),
@@ -184,21 +189,16 @@ def train_online(run, env, agent, num_episodes, img_cfg={}, eval_cfg={}):
         )
 
         # visualize learning every 100 episodes
-        if ep % 100 == 0:
-            if max_timesteps < 1000:
-                max_timesteps += 150
-            else:
-                max_timesteps = 1000
             # Run one episode with rendering
-            run_episode(
-                env,
-                agent,
-                deterministic=True,
-                img_cgf=img_cfg,
-                do_training=False,
-                rendering=True,
-                max_timesteps=1000,
-            )
+        run_episode(
+            env,
+            agent,
+            deterministic=True,
+            img_cgf=img_cfg,
+            do_training=False,
+            rendering=True,
+            max_timesteps=1000,
+        )
 
 
 def state_preprocessing(state):
@@ -215,10 +215,10 @@ def init_wandb(cfg):
         config=cfg,
         name=f"DQN-CarRacing_{timestamp}_utc",
     )
+    wandb.define_metric("reward, train", step_metric="episode")
+    wandb.define_metric("reward, eval", step_metric="episode")
     wandb.define_metric("epsilon/reward, train", step_metric="epsilon, train")
     wandb.define_metric("epsilon/reward, eval", step_metric="epsilon, eval")
-    wandb.define_metric("steps/reward, train", step_metric="steps, train")
-    wandb.define_metric("steps/reward, eval", step_metric="steps, eval")
     return run
 
 
@@ -226,7 +226,7 @@ if __name__ == "__main__":
     # https://gymnasium.farama.org/environments/box2d/car_racing/
     # pip install Box2D gymnasium
     env = gym.make(
-        "CarRacing-v3", continuous=False,
+        "CarRacing-v3", continuous=False,render_mode="human"
     )  # We load the environment as discrete to have a discrete action space, state space is the image
     # Hyperparams
     cfg = {
