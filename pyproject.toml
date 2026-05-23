@@ -18,6 +18,8 @@ dependencies = [
     "scikit-learn",
     "opencv-python",
     "imbalanced-learn",
+    "xgboost",
+    "Pillow",
     "ipykernel",
     "ipympl",
     "notebook",
