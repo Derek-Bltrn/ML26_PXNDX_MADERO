@@ -27,6 +27,7 @@ dependencies = [
     "gymnasium>=0.26.3",
     "gymnasium[classic_control]",
     "wandb",
+    "seaborn"
 ]
 
 [project.optional-dependencies]
