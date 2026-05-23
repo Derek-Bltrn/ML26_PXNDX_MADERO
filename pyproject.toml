@@ -28,6 +28,8 @@ dependencies = [
     "gymnasium[classic_control]",
     "torch>=2.8.0",
     "torchvision>=0.23.0",
+    "wandb",
+    "seaborn"
 ]
 
 [project.optional-dependencies]
