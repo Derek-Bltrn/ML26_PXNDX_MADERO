@@ -239,6 +239,5 @@ __marimo__/
 *.pkl
 *.pickle
 uv.lock
-*.csv
 *.json
 data/
