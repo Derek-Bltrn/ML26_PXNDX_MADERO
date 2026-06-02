@@ -146,7 +146,7 @@ def train_online(run, env, agent, num_episodes, img_cfg={}, eval_cfg={}):
     print("TRAINING AGENT STARTED...")
 
     best_return = -float("inf")
-    max_timesteps = 300
+    max_timesteps = 200
 
     for ep in tqdm(range(num_episodes)):
         # Hint: you can keep the episodes short in the beginning by changing max_timesteps (otherwise the car will spend most of the time out of the track)

@@ -8,7 +8,7 @@ import pandas as pd
 DATA_COLLECTED_AT = datetime(2026, 5, 14).date()
 
 CURRENT_FILE = Path(__file__).resolve()
-DATA_DIR = CURRENT_FILE.parent / "../../../../datasets/customer_purchases/"
+DATA_DIR = CURRENT_FILE.parent / "../ml26/datasets/customer_purchases/"
 
 
 def read_csv(filename: str) -> pd.DataFrame:

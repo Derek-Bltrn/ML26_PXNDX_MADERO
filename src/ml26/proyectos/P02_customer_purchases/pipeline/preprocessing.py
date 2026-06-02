@@ -78,7 +78,7 @@ def build_processor(
         )
     )
     bow_cols = []
-    for col in text_features:
+    for col in count_features:
         vocab = preprocessor.named_transformers_[col].get_feature_names_out()
         bow_cols.extend([f"{col}_bow_{t}" for t in vocab])
 

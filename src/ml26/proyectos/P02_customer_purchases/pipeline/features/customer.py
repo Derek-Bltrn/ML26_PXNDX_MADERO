@@ -55,6 +55,97 @@ def extract_customer_features(train_df: pd.DataFrame) -> pd.DataFrame:
 
     # ── TODO: agrega aquí tus propias features ─────────────────────────────
 
+    # Se agregó el precio promedio de los ítems comprados
+    customer_avg_price = group["item_price"].mean()
+
+    # Se agregó el porcentaje de compras por categoría de ítem
+    item_categories = [
+        "t-shirt",
+        "blouse",
+        "dress",
+        "shoes",
+        "skirt",
+        "jeans",
+        "shirt",
+        "suit",
+        "slacks",
+        "jacket",
+    ]
+
+    customer_category_pct = (
+        group["item_category"]
+        .value_counts(normalize=True)
+        .unstack(fill_value=0)
+        .reindex(columns=item_categories, fill_value=0)
+        .rename(columns=lambda cat: f"customer_pct_{cat.replace('-', '_')}")
+    )
+
+    # Número de compras totales
+    customer_purchase_count_total = group["purchase_id"].count()
+
+    # Días desde la última compra
+    customer_days_since_last_purchase = (
+        today_ts - group["purchase_timestamp"].max()
+    ).dt.days
+
+    # Cantidad de compras por rango de días
+    df["days_since_purchase"] = (
+        today_ts - df["purchase_timestamp"]
+    ).dt.days
+
+    customer_purchase_count_30d = (
+        df[df["days_since_purchase"] <= 30]
+        .groupby("customer_id")
+        .size()
+        .reindex(group.size().index, fill_value=0)
+    )
+
+    customer_purchase_count_30_90d = (
+        df[
+            (df["days_since_purchase"] > 30)
+            & (df["days_since_purchase"] <= 90)
+        ]
+        .groupby("customer_id")
+        .size()
+        .reindex(group.size().index, fill_value=0)
+    )
+
+    customer_purchase_count_90_180d = (
+        df[
+            (df["days_since_purchase"] > 90)
+            & (df["days_since_purchase"] <= 180)
+        ]
+        .groupby("customer_id")
+        .size()
+        .reindex(group.size().index, fill_value=0)
+    )
+
+    # Precio mínimo y máximo de compra
+    customer_min_price = group["item_price"].min()
+    customer_max_price = group["item_price"].max()
+
+    # Frecuencia promedio de compra en los últimos 90 días(se mide en días).
+    recent_purchases_90d = df[df["days_since_purchase"] <= 90].copy()
+
+    recent_purchases_90d = recent_purchases_90d.sort_values(
+        ["customer_id", "purchase_timestamp"]
+    )
+
+    recent_purchases_90d["days_between_purchases_90d"] = (
+        recent_purchases_90d
+        .groupby("customer_id")["purchase_timestamp"]
+        .diff()
+        .dt.days
+    )
+
+    customer_purchase_frecuency_90d = (
+        recent_purchases_90d
+        .groupby("customer_id")["days_between_purchases_90d"]
+        .mean()
+        .reindex(group.size().index, fill_value=90)
+        .fillna(90)
+    )
+
     # ── Construir DataFrame final ───────────────────────────────────────────
 
     # NOTA: para los features del cliente usa la convencion customer_[FEATURE_NAME] ya que esto facilitará el trabajo del preprocessing
@@ -65,6 +156,16 @@ def extract_customer_features(train_df: pd.DataFrame) -> pd.DataFrame:
             "customer_tenure_months": customer_tenure_months,
             # Agrega aquí las features que calculaste arriba, por ejemplo:
             # "customer_avg_price": customer_avg_price,
+            "customer_avg_price": customer_avg_price,
+            "customer_purchase_count_total": customer_purchase_count_total,
+            "customer_days_since_last_purchase": customer_days_since_last_purchase,
+            "customer_purchase_count_30d": customer_purchase_count_30d,
+            "customer_purchase_count_30_90d": customer_purchase_count_30_90d,
+            "customer_purchase_count_90_180d": customer_purchase_count_90_180d,
+            "customer_min_price": customer_min_price,
+            "customer_max_price": customer_max_price,
+            "customer_avg_days_between_purchases_90d": customer_purchase_frecuency_90d,
+            **customer_category_pct.to_dict("series"),
         },
         axis=1,
     ).reset_index(drop=True)
