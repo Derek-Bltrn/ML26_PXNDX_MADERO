@@ -112,6 +112,11 @@ def preprocess(df: pd.DataFrame, training: bool = False) -> pd.DataFrame:
         "purchase_id",
         "item_release_date",  # conviértela a feature numérica si la necesitas
         "item_img_filename",  # reemplázala por features extraídas de la imagen
+        "item_avg_rating",
+        "purchase_timestamp",
+        "customer_item_views",
+        "purchase_item_rating",
+        "purchase_device",
     ]
 
     # ── Features derivadas ─────────────────────────────────────────────────
@@ -147,8 +152,12 @@ def preprocess(df: pd.DataFrame, training: bool = False) -> pd.DataFrame:
     # Agrega aquí las columnas que quieras escalar con StandardScaler
     numeric_features = [
         "customer_age_years",  # ejemplo: edad del cliente
-        # "customer_tenure_months",
-        # "item_days_since_release",
+         "customer_tenure_months",
+        "item_price",
+        "item_days_since_release",
+        "img_mean_r",
+        "img_mean_g",
+        "img_mean_b",
     ]
 
     # Agrega aquí columnas categóricas para OneHotEncoder
