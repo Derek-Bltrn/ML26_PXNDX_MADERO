@@ -138,7 +138,7 @@ def extract_customer_features(train_df: pd.DataFrame) -> pd.DataFrame:
         .dt.days
     )
 
-    customer_purchase_frecuency_90d = (
+    customer_purchase_frequency_90d = (
         recent_purchases_90d
         .groupby("customer_id")["days_between_purchases_90d"]
         .mean()
@@ -157,14 +157,14 @@ def extract_customer_features(train_df: pd.DataFrame) -> pd.DataFrame:
             # Agrega aquí las features que calculaste arriba, por ejemplo:
             # "customer_avg_price": customer_avg_price,
             "customer_avg_price": customer_avg_price,
-            "customer_purchase_count_total": customer_purchase_count_total,
+            "customer_purchase_count": customer_purchase_count_total,
             "customer_days_since_last_purchase": customer_days_since_last_purchase,
             "customer_purchase_count_30d": customer_purchase_count_30d,
             "customer_purchase_count_30_90d": customer_purchase_count_30_90d,
             "customer_purchase_count_90_180d": customer_purchase_count_90_180d,
             "customer_min_price": customer_min_price,
             "customer_max_price": customer_max_price,
-            "customer_avg_days_between_purchases_90d": customer_purchase_frecuency_90d,
+            "customer_purchase_frequency_90d": customer_purchase_frequency_90d,
             **customer_category_pct.to_dict("series"),
         },
         axis=1,
