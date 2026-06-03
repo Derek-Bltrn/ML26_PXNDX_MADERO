@@ -121,8 +121,18 @@ def preprocess(df: pd.DataFrame, training: bool = False) -> pd.DataFrame:
     ]
 
     # ── Features derivadas ─────────────────────────────────────────────────
-    df["item_release_date"] = pd.to_datetime(df["item_release_date"], format="mixed")
-
+    if training:
+        df["item_release_date"] = pd.to_datetime(
+            df["item_release_date"],
+            errors="coerce",
+            dayfirst=True,
+        )
+    else:
+        df["item_release_date"] = pd.to_datetime(
+            df["item_release_date"],
+            errors="coerce",
+            dayfirst=False,
+        )
     # item_days_since_release_cutoff: NO borrar — lo usa split_by_days en training.py
     # para separar train/val sin data leakage. Pasa sin escalar via passthrough.
     df["item_days_since_release_cutoff"] = (
@@ -173,6 +183,8 @@ def preprocess(df: pd.DataFrame, training: bool = False) -> pd.DataFrame:
     df["customer_purchase_frequency_90d_score"] = (
         1 - (df["customer_purchase_frequency_90d"].fillna(90) / 90)
     ).clip(lower=0, upper=1)
+
+    df["item_title"] = df["item_title"].fillna("")
 
     # ── Definicion de grupos de features ───────────────────────────────────
     # Agrega aquí las columnas que quieras escalar con StandardScaler

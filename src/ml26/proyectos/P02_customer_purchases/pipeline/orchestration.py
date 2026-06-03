@@ -22,7 +22,7 @@ from ml26.proyectos.P02_customer_purchases.pipeline.io import (
 )
 from ml26.proyectos.P02_customer_purchases.pipeline.negatives import (
     gen_final_dataset,
-    gen_random_negatives,
+    gen_smart_negatives,
 )
 from ml26.proyectos.P02_customer_purchases.pipeline.preprocessing import (
     preprocess,
@@ -76,7 +76,7 @@ def read_train_data():
 
     # 3. Genera ejemplos negativos.
     # Revisa el código de negatives.py para seleccionar tu estrategia
-    negatives = gen_random_negatives(train_df, n_per_positive=1)
+    negatives = gen_smart_negatives(train_df, n_per_positive=1)
 
     # 4. Combina positivos y negativos (gen_final_dataset).
     full_df = gen_final_dataset(train_df, negatives)

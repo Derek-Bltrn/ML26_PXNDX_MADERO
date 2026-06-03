@@ -34,10 +34,29 @@ def extract_customer_features(train_df: pd.DataFrame) -> pd.DataFrame:
     pd.DataFrame con una fila por customer_id.
     """
     df = train_df.copy()
-    df["item_release_date"] = pd.to_datetime(df["item_release_date"])
-    df["purchase_timestamp"] = pd.to_datetime(df["purchase_timestamp"])
-    df["customer_date_of_birth"] = pd.to_datetime(df["customer_date_of_birth"])
-    df["customer_signup_date"] = pd.to_datetime(df["customer_signup_date"])
+    df["item_release_date"] = pd.to_datetime(
+        df["item_release_date"],
+        errors="coerce",
+        dayfirst=True,
+    )
+
+    df["purchase_timestamp"] = pd.to_datetime(
+        df["purchase_timestamp"],
+        errors="coerce",
+        dayfirst=True,
+    )
+
+    df["customer_date_of_birth"] = pd.to_datetime(
+        df["customer_date_of_birth"],
+        errors="coerce",
+        dayfirst=True,
+    )
+
+    df["customer_signup_date"] = pd.to_datetime(
+        df["customer_signup_date"],
+        errors="coerce",
+        dayfirst=True,
+    )
 
     group = df.groupby("customer_id")
 
