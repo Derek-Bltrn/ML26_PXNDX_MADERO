@@ -153,159 +153,59 @@ def gen_popularity_weighted(df: pd.DataFrame, n_per_positive: int = 1) -> pd.Dat
     return pd.DataFrame(rows)
 
 
-def gen_smart_negatives(df: pd.DataFrame, n_per_positive: int = 1) -> pd.DataFrame:
-    """
-    Genera negativos proporcionales a la actividad del cliente usando una mezcla
-    de estrategias.
-
-    Idea general:
-    - Clientes con mas compras generan mas negativos.
-    - 20% son hard negatives: items no comprados pero plausibles para el cliente.
-    - El resto mezcla popularidad, precio compatible y random para no sesgar demasiado.
-
+def gen_smart_negatives(df: pd.DataFrame, n_per_positive: int = 1,popularity_ratio: float = 0.80) -> pd.DataFrame:
+    """Placeholder para tu propia estrategia de negativos.
+    Aquí puedes implementar cualquier lógica que considere el comportamiento
+    del cliente para seleccionar negativos más informativos. Algunas ideas:
+    - Mismatch de categoría: para cada cliente, calcular sus top-k categorías
+      más compradas y seleccionar ítems de las categorías restantes.
+      (Requiere la columna item_category en df.)
+    - Mismatch de precio: calcular el precio mediano histórico del cliente y
+      seleccionar ítems cuyo precio esté fuera de un rango [median*(1-p),
+      median*(1+p)]. (Requiere item_price en df.)
+    - Negativos recientes: priorizar ítems lanzados después de la última compra
+      del cliente, que son los más relevantes para el problema cold-start.
+      (Requiere item_release_date y purchase_timestamp en df.)
+     - Mix de estrategias: llamar a varias de las funciones anteriores y
+      concatenar sus resultados con distintas proporciones.
+    Parameters
+    ----------
+    df              : DataFrame de compras positivas con todas las columnas del CSV.
+    n_per_positive  : cuántos negativos generar por cliente.
     Returns
     -------
     pd.DataFrame con columnas customer_id, item_id, label (= 0).
     """
-    rng = np.random.default_rng(42)
-
-    item_catalog = (
-        df[["item_id", "item_category", "item_price"]]
-        .drop_duplicates("item_id")
-        .reset_index(drop=True)
+    weighted_negatives = gen_popularity_weighted(
+        df,
+        n_per_positive=n_per_positive,
     )
 
-    item_popularity = df["item_id"].value_counts().to_dict()
+    random_negatives = gen_random_negatives(
+        df,
+        n_per_positive=n_per_positive,
+    )
 
-    rows = []
+    n_total = len(weighted_negatives)
+    n_weighted = int(round(n_total * popularity_ratio))
+    n_random = n_total - n_weighted
 
-    def sample_items(candidates, k, selected, weights=None):
-        candidates = [item for item in candidates if item not in selected]
+    weighted_sample = weighted_negatives.sample(
+        n=n_weighted,
+        random_state=42,
+    )
 
-        if k <= 0 or len(candidates) == 0:
-            return []
+    random_sample = random_negatives.sample(
+        n=min(n_random, len(random_negatives)),
+        random_state=42,
+    )
 
-        k = min(k, len(candidates))
+    negatives = pd.concat(
+        [weighted_sample, random_sample],
+        ignore_index=True,
+    )
 
-        if weights is not None:
-            w = np.array([weights.get(item, 0) for item in candidates], dtype=float)
-            if w.sum() > 0:
-                w = w / w.sum()
-            else:
-                w = None
-        else:
-            w = None
-
-        return list(rng.choice(candidates, size=k, replace=False, p=w))
-
-    for customer_id, customer_hist in df.groupby("customer_id"):
-        purchased_items = set(customer_hist["item_id"].unique())
-        candidate_df = item_catalog[~item_catalog["item_id"].isin(purchased_items)]
-
-        if candidate_df.empty:
-            continue
-
-        n_purchases = len(customer_hist)
-        target_n = min(len(candidate_df), n_purchases * n_per_positive)
-
-        if target_n <= 0:
-            continue
-
-        selected = set()
-
-        # Distribucion:
-        # 20% hard negatives: items plausibles por categoria y precio.
-        # 35% popular negatives: items populares que este cliente no compro.
-        # 25% price-compatible negatives: items dentro del rango de precio historico.
-        # 20% random negatives: diversidad y reduccion de sesgo.
-        n_hard = int(round(target_n * 0.20))
-        n_popular = int(round(target_n * 0.35))
-        n_price = int(round(target_n * 0.25))
-        n_random = target_n - n_hard - n_popular - n_price
-
-        # 1. Hard negatives:
-        # Items de categorias frecuentes del cliente y precio cercano a su promedio.
-        category_pct = customer_hist["item_category"].value_counts(normalize=True)
-
-        preferred_categories = category_pct[category_pct >= 0.20].index.tolist()
-        if not preferred_categories:
-            preferred_categories = category_pct.head(2).index.tolist()
-
-        avg_price = customer_hist["item_price"].mean()
-        std_price = customer_hist["item_price"].std()
-        price_tolerance = max(avg_price * 0.25, 0 if pd.isna(std_price) else std_price)
-
-        hard_df = candidate_df[
-            candidate_df["item_category"].isin(preferred_categories)
-            & (candidate_df["item_price"] >= avg_price - price_tolerance)
-            & (candidate_df["item_price"] <= avg_price + price_tolerance)
-        ]
-
-        hard_sample = sample_items(
-            hard_df["item_id"].tolist(),
-            n_hard,
-            selected,
-            weights=item_popularity,
-        )
-        selected.update(hard_sample)
-
-        # 2. Popular negatives:
-        # Items que muchos otros compraron, pero este cliente no.
-        popular_sample = sample_items(
-            candidate_df["item_id"].tolist(),
-            n_popular,
-            selected,
-            weights=item_popularity,
-        )
-        selected.update(popular_sample)
-
-        # 3. Price-compatible negatives:
-        # Items dentro del rango historico de precios del cliente.
-        min_price = customer_hist["item_price"].min()
-        max_price = customer_hist["item_price"].max()
-
-        price_df = candidate_df[
-            (candidate_df["item_price"] >= min_price)
-            & (candidate_df["item_price"] <= max_price)
-        ]
-
-        price_sample = sample_items(
-            price_df["item_id"].tolist(),
-            n_price,
-            selected,
-        )
-        selected.update(price_sample)
-
-        # 4. Random negatives:
-        # Mantiene variedad y evita que todos los negativos sean demasiado parecidos.
-        random_sample = sample_items(
-            candidate_df["item_id"].tolist(),
-            n_random,
-            selected,
-        )
-        selected.update(random_sample)
-
-        # Fallback:
-        # Si alguna estrategia no tuvo suficientes candidatos, rellenamos con random.
-        remaining = target_n - len(selected)
-        if remaining > 0:
-            fallback_sample = sample_items(
-                candidate_df["item_id"].tolist(),
-                remaining,
-                selected,
-            )
-            selected.update(fallback_sample)
-
-        rows.extend(
-            {
-                "customer_id": customer_id,
-                "item_id": item_id,
-                "label": 0,
-            }
-            for item_id in selected
-        )
-
-    return pd.DataFrame(rows)
+    return negatives[["customer_id", "item_id", "label"]]
 
 
 def gen_final_dataset(train_df: pd.DataFrame, negatives: pd.DataFrame) -> pd.DataFrame:

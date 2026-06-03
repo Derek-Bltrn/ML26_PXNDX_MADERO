@@ -44,22 +44,55 @@ class PurchaseModel:
     def get_classifier(self, name: str, **args):
         # Return the sklearn class instance for the classifier to use
         name = name.lower()
-        pass
+
+        if name in ["logistic", "logreg", "lr"]:
+            return LogisticRegression(
+                solver=self.solver,
+                max_iter=self.max_iter,
+                class_weight=None,
+                random_state=42,
+            )
+
+        if name in ["rf", "random_forest", "randomforest"]:
+            return RandomForestClassifier(
+                n_estimators=300,
+                max_depth=None,
+                min_samples_leaf=2,
+                class_weight=None,
+                random_state=42,
+                n_jobs=-1,
+            )
+        
+        if name in ["xgb", "xgboost"]:
+            return xgb.XGBClassifier(
+                n_estimators=700,
+                max_depth=6,
+                learning_rate=0.03,
+                subsample=1,
+                colsample_bytree=1,
+                objective="binary:logistic",
+                eval_metric="logloss",
+                random_state=42,
+                n_jobs=-1,
+            )
+        raise ValueError(f"Unknown classifier: {name}")
+    
 
     def fit(self, X, y):
-        pass
+        X_resampled, y_resampled = self.smote.fit_resample(X, y)
+        self.model.fit(X_resampled, y_resampled)
+        return self
 
     def predict(self, X):
-        pass
+        return self.model.predict(X)
 
     def predict_proba(self, X):
-        pass
+        return self.model.predict_proba(X)
 
     def get_config(self):
         return {
             "model": self.model_type,
-            "solver": self.solver,
-            "max_iter": self.max_iter,
+            "params": self.classifier.get_params(),
         }
 
     def save(self):

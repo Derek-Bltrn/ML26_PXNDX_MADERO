@@ -14,7 +14,6 @@ ColumnTransformer en preprocessing.py.
 
 import os
 from pathlib import Path
-
 import numpy as np
 import pandas as pd
 from PIL import Image
@@ -83,7 +82,7 @@ def extract_image_features(df: pd.DataFrame) -> pd.DataFrame:
     """
     extractors = [
         extract_mean_color,  # img_mean_r, img_mean_g, img_mean_b
-        # extract_mi_extractor,   # descomenta y agrega aquí
+        # descomenta y agrega aquí
     ]
 
     unique_items = (

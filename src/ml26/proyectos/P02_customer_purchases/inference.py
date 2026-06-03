@@ -34,6 +34,7 @@ def run_inference(model_path: str, X, ids=None):
     # Realizar la inferencia
     preds = model.predict(X)
     probs = model.predict_proba(X)[:, 1]
+    
 
     results = pd.DataFrame(
         {"ID": ids if ids is not None else X.index, "pred": preds, "proba": probs}
@@ -63,12 +64,13 @@ if __name__ == "__main__":
     test_ids = read_csv("customer_purchases_test")["purchase_id"]
     X = read_test_data()
 
-    model_folder = ""
+    model_folder = "xgb_lbfgs_1000_20260603_001834"
     model_name = "model.pkl"
     results = run_inference(model_folder, X, ids=test_ids)
     # Guardar predicciones del modelo
     basepath = RESULTS_DIR / model_folder / "predictions.csv"
     basepath.parent.mkdir(exist_ok=True, parents=True)
 
-    results[["ID", "pred"]].to_csv(basepath, index=False)
+    submission = results[["ID", "proba"]].rename(columns={"proba": "pred"})
+    submission.to_csv(basepath, index=False)
     print(f"Saved predictions to {basepath}")

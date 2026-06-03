@@ -12,12 +12,11 @@ features derivadas en preprocess().
 
 import os
 from pathlib import Path
-
 import joblib
 import numpy as np
 import pandas as pd
 from sklearn.compose import ColumnTransformer
-from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
 from ml26.proyectos.P02_customer_purchases.pipeline.io import (
@@ -51,7 +50,19 @@ def build_processor(
     savepath = Path(os.path.abspath(DATA_DIR)) / "preprocessor.pkl"
 
     if training:
-        text_transformers = [(col, CountVectorizer(), col) for col in count_features]
+        text_transformers = [
+            (
+                col,
+                TfidfVectorizer(
+                    lowercase=True,
+                    ngram_range=(1, 3),
+                    min_df=2,
+                    max_features=1000,
+                ),
+                col,
+            )
+            for col in count_features
+        ]
         preprocessor = ColumnTransformer(
             transformers=[
                 ("num", StandardScaler(), numeric_features),
@@ -198,6 +209,9 @@ def preprocess(df: pd.DataFrame, training: bool = False) -> pd.DataFrame:
         "customer_purchase_count_90_180d",
         "customer_tenure_months",
         "item_price",
+        "img_mean_r",
+        "img_mean_g",
+        "img_mean_b",
     ]
 
     # Agrega aquí columnas categóricas para OneHotEncoder
