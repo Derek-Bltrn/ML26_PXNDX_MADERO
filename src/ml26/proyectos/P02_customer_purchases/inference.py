@@ -64,7 +64,7 @@ if __name__ == "__main__":
     test_ids = read_csv("customer_purchases_test")["purchase_id"]
     X = read_test_data()
 
-    model_folder = "xgb_lbfgs_1000_20260603_001834"
+    model_folder = "xgb_lbfgs_1000_20260603_200801"
     model_name = "model.pkl"
     results = run_inference(model_folder, X, ids=test_ids)
     # Guardar predicciones del modelo

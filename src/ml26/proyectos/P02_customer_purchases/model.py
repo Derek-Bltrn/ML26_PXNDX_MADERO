@@ -65,13 +65,13 @@ class PurchaseModel:
         
         if name in ["xgb", "xgboost"]:
             return xgb.XGBClassifier(
-                n_estimators=700,
+                n_estimators=1000,
                 max_depth=6,
-                learning_rate=0.03,
+                learning_rate=0.05,
                 subsample=1,
                 colsample_bytree=1,
                 objective="binary:logistic",
-                eval_metric="logloss",
+                eval_metric="auc",
                 random_state=42,
                 n_jobs=-1,
             )

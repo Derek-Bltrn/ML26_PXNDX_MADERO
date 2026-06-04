@@ -78,8 +78,8 @@ def read_train_data():
     # Revisa el código de negatives.py para seleccionar tu estrategia
     negatives = gen_smart_negatives(
         train_df,
-        n_per_positive=1,
-        popularity_ratio=0.80,
+        n_per_positive=2,
+        popularity_ratio=0.8,
     )
 
     # 4. Combina positivos y negativos (gen_final_dataset).
